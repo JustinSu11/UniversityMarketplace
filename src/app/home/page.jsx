@@ -1,13 +1,12 @@
+import styles from './home.module.css'; 
 
 
 const Home = () => {
     return (
         <div>
-            <nav>
-                <ul>
-                    <li><a href="">College Exchange</a></li>
-                </ul>
-            </nav>
+            <header>
+                <nav><a href="/" className={styles.websiteTitle}>Campus Exchange</a></nav>
+            </header>
         </div>
     )
 }
