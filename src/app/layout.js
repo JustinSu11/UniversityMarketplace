@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
           <nav className={styles.navbar}>
             <Link href="/" className={styles.websiteTitle}>Campus Exchange</Link>
             <div className={styles.navLinks}>
-              <Link href="/detailedlisting">Browse</Link>
+              <Link href="/">Browse</Link>
               <Link href="/signin">Sign In</Link>
               <Link href="/signup">Sign Up</Link>
             </div>
