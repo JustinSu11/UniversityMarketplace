@@ -1,9 +1,21 @@
 /* [project]/src/app/page.module.css [app-client] (css) */
 .page-module___8aEwW__websiteTitle {
-  color: inherit;
+  color: red;
   font-size: 1.5rem;
   font-weight: bold;
   text-decoration: none;
+}
+
+.page-module___8aEwW__home {
+  background-color: tan;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.page-module___8aEwW__h1 {
+  text-align: center;
+  font-family: Georgia, serif;
+  font-size: 25rem;
 }
 
 

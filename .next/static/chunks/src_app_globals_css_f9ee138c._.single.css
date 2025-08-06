@@ -1,14 +1,7 @@
 /* [project]/src/app/globals.css [app-client] (css) */
 :root {
-  --background: #fff;
+  --background: white;
   --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 html, body {
@@ -39,6 +32,25 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+.navbar {
+  background-color: #f2f2f2;
+  border-bottom: 1px solid #ddd;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem;
+  display: flex;
+}
+
+.navbar a {
+  color: #333;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.navbar a:hover {
+  color: #0070f3;
 }
 
 /*# sourceMappingURL=src_app_globals_css_f9ee138c._.single.css.map*/

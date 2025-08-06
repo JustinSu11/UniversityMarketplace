@@ -4,11 +4,11 @@ import Link from 'next/link';
 
 const Home = () => {
     return (
-        <div>
-            <header>
-                <nav><Link href="/" className={styles.websiteTitle}>Campus Exchange</Link></nav>
-            </header>
-        </div>
+        
+            <body>
+                <h1> Welcome to CampusExchange</h1>
+            </body>
+        
     )
 }
 
