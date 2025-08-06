@@ -2,5 +2,19 @@
     font-size: 1.5rem;
     font-weight: bold;
     text-decoration: none;
-    color: inherit;
+    color:red;
 }
+
+.home {
+  background-color: tan; 
+  min-height: 100vh;      /* full page height */
+  padding: 2rem;
+}
+
+.h1{
+    font-size: 25rem;
+    text-align: center;
+    font-family: 'Georgia', serif
+}
+
+
