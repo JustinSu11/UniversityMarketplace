@@ -1,7 +1,17 @@
+'use client'
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import styles from "./navbar.module.css"; // ✅ import the styles
+import styles from "./navbar.module.css";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import SignInForm from '@/components/ui/SignInForm';
+import SignUpForm from '@/components/ui/SignUpForm';
+import { useState } from 'react';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,12 +23,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "Campus Exchange",
-  description: "Your trusted campus marketplace",
-};
-
 export default function RootLayout({ children }) {
+  const [isSignInOpen, setIsSignInOpen] = useState(false);
+  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+
+  const handleSignInOpen = (open) => setIsSignInOpen(open);
+  const handleSignUpOpen = (open) => setIsSignUpOpen(open);
+
+  const switchToSignUp = () => {
+    handleSignInOpen(false);
+    handleSignUpOpen(true);
+  };
+
+  const switchToSignIn = () => {
+    handleSignUpOpen(false);
+    handleSignInOpen(true);
+  };
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
@@ -27,8 +48,22 @@ export default function RootLayout({ children }) {
             <Link href="/" className={styles.websiteTitle}>Campus Exchange</Link>
             <div className={styles.navLinks}>
               <Link href="/">Browse</Link>
-              <Link href="/signin">Sign In</Link>
-              <Link href="/signup">Sign Up</Link>
+              <Dialog open={isSignInOpen} onOpenChange={handleSignInOpen}>
+                <DialogTrigger asChild>
+                    <button className={styles.navLinkButton}>Sign In</button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px] p-0">
+                    <SignInForm onSwitchToSignUp={switchToSignUp} />
+                </DialogContent>
+              </Dialog>
+              <Dialog open={isSignUpOpen} onOpenChange={handleSignUpOpen}>
+                <DialogTrigger asChild>
+                    <button className={styles.navLinkButton}>Sign Up</button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px] p-0">
+                    <SignUpForm onSwitchToSignIn={switchToSignIn} />
+                </DialogContent>
+              </Dialog>
             </div>
           </nav>
         </header>
