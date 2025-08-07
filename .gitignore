@@ -43,3 +43,7 @@ next-env.d.ts
 # Trace files from builds and debugging
 *.trace
 trace
+
+# Editor directories and files
+.vscode
+.idea
