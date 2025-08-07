@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { signIn } from 'next-auth/react'
 
 const SignInForm = ({ onSwitchToSignUp }) => {
   return (
@@ -40,6 +41,19 @@ const SignInForm = ({ onSwitchToSignUp }) => {
                 </div>
                 <Button type="submit" className="w-full">
                 Login
+                </Button>
+                <div className="relative my-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+                <Button variant="outline" className="w-full" onClick={() => signIn('google')}>
+                  Sign in with Google
                 </Button>
             </div>
             </form>
