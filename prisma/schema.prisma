@@ -80,6 +80,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  phoneNumber   String?
   role          Role      @default(USER)
   listings      Listing[]
   accounts      Account[]
@@ -99,6 +100,7 @@ model Listing {
   status      ListingStatus   @default(ACTIVE)
   location    String? // campus location or building
   tags        String? // JSON array of tags
+  contactPreference ContactPreference @default(EMAIL)
   photos      Photo[]
   
   sellerId    Int

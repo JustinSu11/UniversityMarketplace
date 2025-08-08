@@ -3,14 +3,15 @@ import prisma from '@/lib/prisma';
 import ProfileSidebar from '@/components/ProfileSidebar';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import Link from 'next/link'
+import Image from 'next/image'
+
 
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
-  // The user object from the session contains the id and role
   const userPayload = session?.user;
 
   if (!userPayload) {
-    //redirect to the sign-in page.
     redirect('/api/auth/signin');
   }
 
@@ -18,11 +19,16 @@ export default async function ProfilePage() {
   const [user, listings] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userPayload.id },
-      select: { name: true, email: true, role: true },
+      select: { name: true, email: true, role: true, image: true },
     }),
     prisma.listing.findMany({
-      where: { sellerId: userPayload.id },
+      where: { sellerId: userPayload.id, status: { not: 'DELETED' } },
       orderBy: { createdAt: 'desc' },
+      include: {
+        photos: {
+          take: 1,
+        },
+      },
     }),
   ]);
 
@@ -35,20 +41,50 @@ export default async function ProfilePage() {
     <div className="flex h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900">
       <ProfileSidebar user={user} />
       <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-6">
-          My Listings
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
+            My Listings
+          </h1>
+          <Link
+            href="/newListing"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            Create New Listing
+          </Link>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {listings.length > 0 ? (
-            listings.map((listing) => (
-              <div key={listing.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 transition hover:shadow-lg">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white truncate">{listing.title}</h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-2 h-24 overflow-hidden text-ellipsis">{listing.description}</p>
-                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-4">
-                  ${(listing.priceCents / 100).toFixed(2)}
-                </p>
-              </div>
-            ))
+            listings.map((listing) => {
+              const firstImage = Array.isArray(listing.photos) && listing.photos.length > 0 ? listing.photos[0].url : null;
+              return (
+                <Link href={`/detailedListing/${listing.id}`} key={listing.id} className="block group">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 group-hover:shadow-xl">
+                    <div className="relative w-full bg-gray-100 dark:bg-gray-700" style={{ paddingTop: '56.25%' }}>
+                      {firstImage ? (
+                        <Image
+                          src={firstImage}
+                          alt={listing.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-gray-400 text-4xl">📦</div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{listing.title}</h2>
+                      <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-2">
+                        {listing.priceCents ? `$${(listing.priceCents / 100).toFixed(2)}` : 'Free'}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })
           ) : (
             <p className="text-gray-500 dark:text-gray-400 col-span-full">You have not created any listings yet.</p>
           )}
