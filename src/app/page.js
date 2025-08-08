@@ -58,19 +58,18 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Browse Listings</h1>
         <p className="text-gray-600 mb-8">Found {listings.length} listings</p>
-        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {listings.map((listing) => {
-            const firstImage = Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : null;
+            const firstImage = Array.isArray(listing.photos) && listing.photos.length > 0 ? listing.photos[0].url : null;
             return (
               <div key={listing.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="relative w-full bg-gray-100" style={{ paddingTop: '56.25%' }}>
                   {firstImage ? (
                     <Image
-                      src={firstImage}
+                      src={firstImage} // This now correctly uses the URL from the Photo model
                       alt={listing.title}
                       fill
                       className="object-cover"
@@ -100,16 +99,18 @@ export default function Home() {
             );
           })}
         </div>
-        
-        <div className="mt-8 text-center">
-          <Link
-            href="/newListing"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-          >
-            Create New Listing
-          </Link>
-        </div>
       </div>
+
+      {/* Floating Action Button */}
+      <Link
+        href="/newListing"
+        className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        aria-label="Create new listing"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" />
+        </svg>
+      </Link>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -40,6 +40,7 @@ export async function GET(request) {
               email: true,
             },
           },
+          photos: true,
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -48,27 +49,18 @@ export async function GET(request) {
       prisma.listing.count({ where }),
     ]);
 
-    // Normalize JSON fields (images, tags) to arrays for clients
+    // Normalize tags from JSON string to array
     const listings = rawListings.map((listing) => {
-      let images = null;
-      let tags = null;
-      try {
-        if (listing.images) {
-          images = Array.isArray(listing.images)
-            ? listing.images
-            : JSON.parse(listing.images);
-        }
-      } catch (_) {
-        images = null;
-      }
+      let tags = [];
       try {
         if (listing.tags) {
-          tags = Array.isArray(listing.tags) ? listing.tags : JSON.parse(listing.tags);
+          tags = JSON.parse(listing.tags);
         }
       } catch (_) {
-        tags = null;
+        // if parsing fails, keep it as an empty array
+        tags = [];
       }
-      return { ...listing, images, tags };
+      return { ...listing, tags };
     });
 
     return NextResponse.json({
@@ -93,17 +85,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const {
-      title,
-      description,
-      priceCents,
-      category,
-      condition,
-      location,
-      images,
-      tags,
-      sellerId,
-    } = body;
+    const { title, description, priceCents, category, condition, location, photos, tags, sellerId } = body;
 
     // Validate required fields
     if (!title || !sellerId) {
@@ -130,7 +112,7 @@ export async function POST(request) {
         category: category || 'OTHER',
         condition: condition || 'GOOD',
         location,
-        images: images ? JSON.stringify(images) : null,
+        photos,
         tags: tags ? JSON.stringify(tags) : null,
         sellerId,
       },
@@ -142,12 +124,16 @@ export async function POST(request) {
             email: true,
           },
         },
+        photos: true,
       },
     });
 
     return NextResponse.json(listing, { status: 201 });
   } catch (error) {
     console.error('Error creating listing:', error);
+        if (error instanceof Prisma.PrismaClientValidationError) {
+            return NextResponse.json({ error: 'Invalid data provided for listing creation.', details: error.message }, { status: 400 });
+        }
     return NextResponse.json(
       { error: 'Failed to create listing' },
       { status: 500 }
