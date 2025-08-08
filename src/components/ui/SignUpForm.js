@@ -19,6 +19,7 @@ const SignUpForm = ({ onSwitchToSignIn }) => {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,6 +36,7 @@ const SignUpForm = ({ onSwitchToSignIn }) => {
           name: `${firstName.trim()} ${lastName.trim()}`,
           email: email.trim().toLowerCase(),
           password,
+          phoneNumber: phoneNumber.trim(),
         }),
       });
 
@@ -91,16 +93,12 @@ const SignUpForm = ({ onSwitchToSignIn }) => {
                     </div>
                     </div>
                     <div className="grid gap-2">
-                    <Label htmlFor="username">Username</Label>
-                    <Input id="username" type="text" placeholder="YourUsername" />
-                    </div>
-                    <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" type="email" placeholder="NewUser@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
                     </div>
                     <div className="grid gap-2">
-                    <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
-                    <Input id="phoneNumber" type="tel" placeholder="e.g., 123-456-7890" pattern="(\([0-9]{3}\)\s[0-9]{3}-[0-9]{4})|([0-9]{3}-[0-9]{3}-[0-9]{4})|([0-9]{10})" />
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <Input id="phoneNumber" type="tel" placeholder="e.g., 123-456-7890" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>

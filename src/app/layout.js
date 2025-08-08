@@ -84,11 +84,6 @@ function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignU
         //Display profile picture if available, otherwise show first letter of name in a circle
         return (
             <div className="flex items-center gap-4">
-                {/* Profile Link */}
-                <Link href='/profile' className={styles.navLinkButton}>{displayName}</Link>
-
-                {/* Sign Out */}
-                <button onClick={() => signOut()} className={styles.navLinkButton}>Sign out</button>
                 <Link href='/user/profile'>
                     {session.user.image ? (
                         <Image
@@ -99,7 +94,7 @@ function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignU
                             className="rounded-full"
                         />
                     ) : (
-                        <div className={cn( // Use w-8 h-8 to match the Image component size
+                        <div className={cn(
                             'w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm',
                             colorClass
                         )}>

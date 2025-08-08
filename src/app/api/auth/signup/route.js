@@ -8,8 +8,8 @@ export async function POST(req) {
     const { name, email, password } = await req.json()
 
     // 1. Validate input
-    if (!name || !email || !password) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    if (!name || !email || !password || !phoneNumber) {
+      return NextResponse.json({ error: 'Name, email, password, and phone number are required' }, { status: 400 });
     }
 
     if (password.length < 8) {

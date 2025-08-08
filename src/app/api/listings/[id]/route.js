@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]/route';
+import prisma from '@/lib/prisma';
 
-const prisma = new PrismaClient();
-
-// GET /api/listings/[id] - Get a specific listing
+// GET /api/listings/[id] for a specific listing
 export async function GET(request, { params }) {
   try {
-    const { id } = await params;
-    const listingId = parseInt(id);
+    const listingId = parseInt(params.id, 10);
 
     if (isNaN(listingId)) {
       return NextResponse.json(
@@ -16,7 +16,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    const raw = await prisma.listing.findUnique({
+    const listing = await prisma.listing.findUnique({
       where: { id: listingId },
       include: {
         seller: {
@@ -24,37 +24,32 @@ export async function GET(request, { params }) {
             id: true,
             name: true,
             email: true,
+            phoneNumber: true,
           },
         },
+        photos: true,
       },
     });
 
-    if (!raw) {
+    if (!listing) {
       return NextResponse.json(
         { error: 'Listing not found' },
         { status: 404 }
       );
     }
 
-    // Normalize JSON fields
-    let images = null;
-    let tags = null;
+    // Normalize the tags from a JSON string to an array
+    let tags = [];
     try {
-      if (raw.images) {
-        images = Array.isArray(raw.images) ? raw.images : JSON.parse(raw.images);
+      if (listing.tags) {
+        tags = JSON.parse(listing.tags);
       }
     } catch (_) {
-      images = null;
-    }
-    try {
-      if (raw.tags) {
-        tags = Array.isArray(raw.tags) ? raw.tags : JSON.parse(raw.tags);
-      }
-    } catch (_) {
-      tags = null;
+      // if parsing fails, keep it as an empty array
+      tags = [];
     }
 
-    return NextResponse.json({ ...raw, images, tags });
+    return NextResponse.json({ ...listing, tags });
   } catch (error) {
     console.error('Error fetching listing:', error);
     return NextResponse.json(
@@ -66,10 +61,14 @@ export async function GET(request, { params }) {
 
 // PUT /api/listings/[id] - Update a listing
 export async function PUT(request, { params }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const { id } = await params;
-    const listingId = parseInt(id);
     const body = await request.json();
+    const listingId = parseInt(params.id, 10);
 
     if (isNaN(listingId)) {
       return NextResponse.json(
@@ -90,6 +89,13 @@ export async function PUT(request, { params }) {
       );
     }
 
+    // Check if the user is the owner of the listing
+    if (existingListing.sellerId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden' }, { status: 403 }
+      );
+    }
+
     // Prepare update data
     const updateData = {};
     const allowedFields = [
@@ -100,14 +106,13 @@ export async function PUT(request, { params }) {
       'condition',
       'status',
       'location',
-      'images',
       'tags',
     ];
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        if (field === 'images' || field === 'tags') {
-          updateData[field] = body[field] ? JSON.stringify(body[field]) : null;
+        if (field === 'tags') {
+          updateData[field] = Array.isArray(body[field]) ? JSON.stringify(body[field]) : null;
         } else {
           updateData[field] = body[field];
         }
@@ -139,6 +144,12 @@ export async function PUT(request, { params }) {
     return NextResponse.json(updatedListing);
   } catch (error) {
     console.error('Error updating listing:', error);
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      return NextResponse.json(
+        { error: 'Invalid data provided for listing update.', details: error.message },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: 'Failed to update listing' },
       { status: 500 }
@@ -148,9 +159,13 @@ export async function PUT(request, { params }) {
 
 // DELETE /api/listings/[id] - Delete a listing (soft delete by setting status to DELETED)
 export async function DELETE(request, { params }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const { id } = await params;
-    const listingId = parseInt(id);
+    const listingId = parseInt(params.id, 10);
 
     if (isNaN(listingId)) {
       return NextResponse.json(
@@ -168,6 +183,13 @@ export async function DELETE(request, { params }) {
       return NextResponse.json(
         { error: 'Listing not found' },
         { status: 404 }
+      );
+    }
+
+    // Check if the user is the owner of the listing
+    if (existingListing.sellerId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden' }, { status: 403 }
       );
     }
 

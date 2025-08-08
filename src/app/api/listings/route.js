@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { Prisma, PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { Prisma } from '@prisma/client';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]/route';
+import prisma from '@/lib/prisma';
 
 // GET /api/listings - Get all active listings
 export async function GET(request) {
@@ -83,27 +84,33 @@ export async function GET(request) {
 
 // POST /api/listings - Create a new listing
 export async function POST(request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
-    const { title, description, priceCents, category, condition, location, photos, tags, sellerId } = body;
+    const { title, description, priceCents, category, condition, location, photos, tags, contactPreference } = body;
 
     // Validate required fields
-    if (!title || !sellerId) {
+    if (!title) {
       return NextResponse.json(
-        { error: 'Title and sellerId are required' },
+        { error: 'Title is required' },
         { status: 400 }
       );
     }
 
     // Validate price
-    if (priceCents && priceCents < 0) {
+    if (priceCents && (typeof priceCents !== 'number' || priceCents < 0)) {
       return NextResponse.json(
-        { error: 'Price must be non-negative' },
+        { error: 'Price must be a non-negative number' },
         { status: 400 }
       );
     }
 
-    // Create the listing
+    // Use the authenticated user's ID to create the listing
     const listing = await prisma.listing.create({
       data: {
         title,
@@ -112,9 +119,12 @@ export async function POST(request) {
         category: category || 'OTHER',
         condition: condition || 'GOOD',
         location,
-        photos,
-        tags: tags ? JSON.stringify(tags) : null,
-        sellerId,
+        tags: Array.isArray(tags) ? JSON.stringify(tags) : null,
+        contactPreference: contactPreference || 'EMAIL',
+        sellerId: session.user.id,
+        photos: {
+          create: Array.isArray(photos) ? photos.map((url) => ({ url })) : [],
+        },
       },
       include: {
         seller: {

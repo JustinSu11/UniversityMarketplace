@@ -35,6 +35,7 @@ export default function NewListingPage() {
     location: '',
     tags: '',
     imageUrls: '', // comma-separated URLs
+    contactPreference: 'EMAIL',
   });
 
   useEffect(() => {
@@ -69,29 +70,17 @@ export default function NewListingPage() {
       return;
     }
 
-    // Convert tags string to array
-    const tagsArray = formData.tags
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0);
-
-    // Convert imageUrls string to an array of objects for Prisma
-    const photosToCreate = formData.imageUrls
-      .split(',')
-      .map(url => url.trim())
-      .filter(Boolean)
-      .map(url => ({ url }));
-
-    const { imageUrls, priceDollars, ...restOfFormData } = formData;
-
+    // Prepare data for the API
     const listingData = {
-      ...restOfFormData,
-      priceCents: priceDollars ? priceToCents(parseFloat(priceDollars)) : null,
-      tags: tagsArray,
-      photos: {
-        create: photosToCreate,
-      },
-      sellerId: 1, // Replace with actual authenticated user ID
+      title: formData.title,
+      description: formData.description,
+      priceCents: formData.priceDollars ? priceToCents(parseFloat(formData.priceDollars)) : null,
+      category: formData.category,
+      condition: formData.condition,
+      location: formData.location,
+      contactPreference: formData.contactPreference,
+      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+      photos: formData.imageUrls.split(',').map(url => url.trim()).filter(Boolean),
     };
 
     // Validate data
@@ -269,6 +258,25 @@ export default function NewListingPage() {
               <Input type="text" id="imageUrls" name="imageUrls" value={formData.imageUrls} onChange={handleInputChange} placeholder="https://..., https://... (separate with commas)"/>
               <p className="text-sm text-gray-500 mt-1">Paste one or more image URLs, separated by commas</p>
             </div>
+
+            {/* Contact Preference */}
+            <div>
+              <label htmlFor="contactPreference" className="block text-sm font-medium text-gray-700 mb-2">
+                Preferred Contact Method
+              </label>
+              <Select onValueChange={(value) => handleSelectChange('contactPreference', value)} defaultValue={formData.contactPreference}>
+                <SelectTrigger>
+                  <SelectValue placeholder="How should buyers contact you?" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EMAIL">Email Only</SelectItem>
+                  <SelectItem value="PHONE">Phone Only</SelectItem>
+                  <SelectItem value="BOTH">Email and Phone</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-gray-500 mt-1">This will use the contact info from your profile.</p>
+            </div>
+
 
             {/* Submit Button */}
             <div className="flex justify-end space-x-4 pt-6 border-t">
