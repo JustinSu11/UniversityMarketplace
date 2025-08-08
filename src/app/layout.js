@@ -1,5 +1,3 @@
-'use client'
-
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
@@ -125,17 +123,4 @@ function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignU
             </Dialog>
         </>
     )
-}
-
-// The RootLayout wraps the entire application with the SessionProvider.
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <SessionProvider>
-          <AppLayout>{children}</AppLayout>
-        </SessionProvider>
-      </body>
-    </html>
-  );
 }
