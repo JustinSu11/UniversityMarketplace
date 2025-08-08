@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import SignInForm from '@/components/ui/SignInForm';
 import SignUpForm from '@/components/ui/SignUpForm';
+import NewListingForm from '@/components/ui/NewListingForm';
 import { useState } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react'
 
@@ -67,26 +68,48 @@ function AppLayout({ children }) {
 
 //sign in and sign up buttons, once user is authenticated, show their name and a sign out button
 function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignUpOpen, switchToSignIn, switchToSignUp }) {
-    const { data: session, status } = useSession()
+    const { data: session, status } = useSession();
+    const [isNewListingOpen, setIsNewListingOpen] = useState(false);
 
     if (status === 'loading') {
-        return <div className='text-sm font-medium text-gray-500'>Loading...</div>
+        return <div className='text-sm font-medium text-gray-500'>Loading...</div>;
     }
 
     if (session) {
-        // Safely get the user's first name, falling back to the email if the name isn't available.
         const displayName = session.user.name ? session.user.name.split(' ')[0] : session.user.email;
 
         return (
             <div className="flex items-center gap-4">
+                {/* New Listing Button & Modal */}
+                <Dialog open={isNewListingOpen} onOpenChange={setIsNewListingOpen}>
+                    <DialogTrigger asChild>
+                        <button className={styles.navLinkButton}>New Listing</button>
+                    </DialogTrigger>
+                    <DialogContent className='sm:max-w-[600px] p-4'>
+                        <NewListingForm onClose={() => setIsNewListingOpen(false)} />
+                    </DialogContent>
+                </Dialog>
+
+                {/* Profile Link */}
                 <Link href='/profile' className={styles.navLinkButton}>{displayName}</Link>
+
+                {/* Sign Out */}
                 <button onClick={() => signOut()} className={styles.navLinkButton}>Sign out</button>
             </div>
-        )
+        );
     }
 
+    // Show Sign In & Sign Up if not logged in
     return (
         <>
+            <Dialog open={isNewListingOpen} onOpenChange={setIsNewListingOpen}>
+        <DialogTrigger asChild>
+        <button className={styles.navLinkButton}>New Listing</button>
+          </DialogTrigger>
+          <DialogContent className='sm:max-w-[600px] p-4'>
+           <NewListingForm onClose={() => setIsNewListingOpen(false)} />
+           </DialogContent>
+            </Dialog>
             <Dialog open={isSignInOpen} onOpenChange={handleSignInOpen}>
                 <DialogTrigger asChild>
                     <button className={styles.navLinkButton}>Sign In</button>
@@ -104,8 +127,9 @@ function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignU
                 </DialogContent>
             </Dialog>
         </>
-    )
+    );
 }
+
 
 // The RootLayout wraps the entire application with the SessionProvider.
 export default function RootLayout({ children }) {
