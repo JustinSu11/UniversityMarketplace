@@ -3,6 +3,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./navbar.module.css";
 import {
   Dialog,
@@ -13,6 +14,8 @@ import SignInForm from '@/components/ui/SignInForm';
 import SignUpForm from '@/components/ui/SignUpForm';
 import { useState } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react'
+import Providers from '@/components/Providers'
+import { cn, getRandomColor } from "@/lib/utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,7 +63,7 @@ function AppLayout({ children }) {
           </div>
         </nav>
       </header>
-      <main>{children}</main>
+      <Providers>{children}</Providers>
     </>
   );
 }
@@ -74,13 +77,30 @@ function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignU
     }
 
     if (session) {
-        // Safely get the user's first name, falling back to the email if the name isn't available.
+        // get the user's first name, falling back to the email if the name isn't available. Was used for top right but replaced it with profile picture
         const displayName = session.user.name ? session.user.name.split(' ')[0] : session.user.email;
-
+        const colorClass = getRandomColor(session.user.name || session.user.email);
+        //Display profile picture if available, otherwise show first letter of name in a circle
         return (
             <div className="flex items-center gap-4">
-                <Link href='/profile' className={styles.navLinkButton}>{displayName}</Link>
-                <button onClick={() => signOut()} className={styles.navLinkButton}>Sign out</button>
+                <Link href='/user/profile'>
+                    {session.user.image ? (
+                        <Image
+                            src={session.user.image}
+                            alt={session.user.name || 'User profile picture'}
+                            width={32}
+                            height={32}
+                            className="rounded-full"
+                        />
+                    ) : (
+                        <div className={cn( // Use w-8 h-8 to match the Image component size
+                            'w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm',
+                            colorClass
+                        )}>
+                            {displayName.charAt(0).toUpperCase()}
+                        </div>
+                    )}
+                </Link>
             </div>
         )
     }

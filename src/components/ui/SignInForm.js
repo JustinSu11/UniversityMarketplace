@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { signIn } from 'next-auth/react'
 
-export default function SignInForm({ onSwitchToSignUp, nextPath = '/user' }) {
+export default function SignInForm({ onSwitchToSignUp, nextPath = '/' }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,27 +27,23 @@ export default function SignInForm({ onSwitchToSignUp, nextPath = '/user' }) {
     console.log('[signin] submitting', payload);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
       });
 
-      let data = null;
-      try { data = await res.json(); } catch {}
-
-      console.log('[signin] response', res.status, data);
-
-      if (!res.ok) {
-        setError(data?.error || `Login failed (${res.status})`);
+      if (result.error) {
+        //customize error messages in the authorize function
+        setError('Invalid email or password. Please try again.')
         setLoading(false);
         return;
       }
 
-      // 🔨 Brute-force full navigation so server components see the cookie
+      //full page navigation to ensure all server components re-render with the new session.
       window.location.assign(nextPath);
-      return; // stop any further state updates
     } catch (err) {
+      return; // stop any further state updates
       console.error(err);
       setError('Network error. Is the dev server running?');
     } finally {
@@ -101,7 +97,7 @@ export default function SignInForm({ onSwitchToSignUp, nextPath = '/user' }) {
                     </span>
                   </div>
                 </div>
-                <Button variant="outline" className="w-full" onClick={() => signIn('google')}>
+                <Button variant="outline" className="w-full" onClick={() => signIn('google', { callbackUrl: '/' })}>
                   Sign in with Google
                 </Button>
           </div>
