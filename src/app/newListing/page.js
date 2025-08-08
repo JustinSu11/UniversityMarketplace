@@ -3,12 +3,22 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
 import { 
   getCategoryOptions, 
   getConditionOptions, 
   priceToCents, 
   validateListingData 
 } from '@/lib/listings';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 export default function NewListingPage() {
   const router = useRouter();
@@ -33,6 +43,13 @@ export default function NewListingPage() {
     }));
   };
 
+  const handleSelectChange = (name, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -44,18 +61,23 @@ export default function NewListingPage() {
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0);
 
-    // Convert imageUrls string to array
-    const imagesArray = formData.imageUrls
+    // Convert imageUrls string to an array of objects for Prisma
+    const photosToCreate = formData.imageUrls
       .split(',')
       .map(url => url.trim())
-      .filter(url => url.length > 0);
+      .filter(Boolean)
+      .map(url => ({ url }));
+
+    const { imageUrls, priceDollars, ...restOfFormData } = formData;
 
     const listingData = {
-      ...formData,
-      priceCents: formData.priceDollars ? priceToCents(parseFloat(formData.priceDollars)) : null,
+      ...restOfFormData,
+      priceCents: priceDollars ? priceToCents(parseFloat(priceDollars)) : null,
       tags: tagsArray,
-      images: imagesArray,
-      sellerId: 1, // Replace with actual user ID
+      photos: {
+        create: photosToCreate,
+      },
+      sellerId: 1, // Replace with actual authenticated user ID
     };
 
     // Validate data
@@ -121,16 +143,7 @@ export default function NewListingPage() {
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                 Title *
               </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter a descriptive title for your item"
-              />
+              <Input type="text" id="title" name="title" value={formData.title} onChange={handleInputChange} required placeholder="Enter a descriptive title for your item"/>
             </div>
 
             {/* Description */}
@@ -138,13 +151,12 @@ export default function NewListingPage() {
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
                 Description
               </label>
-              <textarea
+              <Textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Describe your item in detail..."
               />
             </div>
@@ -155,17 +167,7 @@ export default function NewListingPage() {
                 <label htmlFor="priceDollars" className="block text-sm font-medium text-gray-700 mb-2">
                   Price ($)
                 </label>
-                <input
-                  type="number"
-                  id="priceDollars"
-                  name="priceDollars"
-                  value={formData.priceDollars}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="0.00"
-                />
+                <Input type="number" id="priceDollars" name="priceDollars" value={formData.priceDollars} onChange={handleInputChange} min="0" step="0.01" placeholder="0.00" />
                 <p className="text-sm text-gray-500 mt-1">Leave empty for free items</p>
               </div>
 
@@ -173,19 +175,18 @@ export default function NewListingPage() {
                 <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                   Category
                 </label>
-                <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {getCategoryOptions().map((category) => (
-                    <option key={category.value} value={category.value}>
-                      {category.label}
-                    </option>
-                  ))}
-                </select>
+                <Select onValueChange={(value) => handleSelectChange('category', value)} defaultValue={formData.category}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getCategoryOptions().map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -195,34 +196,25 @@ export default function NewListingPage() {
                 <label htmlFor="condition" className="block text-sm font-medium text-gray-700 mb-2">
                   Condition
                 </label>
-                <select
-                  id="condition"
-                  name="condition"
-                  value={formData.condition}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {getConditionOptions().map((condition) => (
-                    <option key={condition.value} value={condition.value}>
-                      {condition.label}
-                    </option>
-                  ))}
-                </select>
+                <Select onValueChange={(value) => handleSelectChange('condition', value)} defaultValue={formData.condition}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a condition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getConditionOptions().map((condition) => (
+                      <SelectItem key={condition.value} value={condition.value}>
+                        {condition.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
                   Location
                 </label>
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="e.g., Main Campus, Engineering Building"
-                />
+                <Input type="text" id="location" name="location" value={formData.location} onChange={handleInputChange} placeholder="e.g., Main Campus, Engineering Building"/>
               </div>
             </div>
 
@@ -231,15 +223,7 @@ export default function NewListingPage() {
               <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
                 Tags
               </label>
-              <input
-                type="text"
-                id="tags"
-                name="tags"
-                value={formData.tags}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="textbook, math, calculus (separate with commas)"
-              />
+              <Input type="text" id="tags" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="textbook, math, calculus (separate with commas)"/>
               <p className="text-sm text-gray-500 mt-1">Add relevant tags to help buyers find your item</p>
             </div>
 
@@ -248,33 +232,18 @@ export default function NewListingPage() {
               <label htmlFor="imageUrls" className="block text-sm font-medium text-gray-700 mb-2">
                 Image URLs
               </label>
-              <input
-                type="text"
-                id="imageUrls"
-                name="imageUrls"
-                value={formData.imageUrls}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="https://..., https://... (separate with commas)"
-              />
+              <Input type="text" id="imageUrls" name="imageUrls" value={formData.imageUrls} onChange={handleInputChange} placeholder="https://..., https://... (separate with commas)"/>
               <p className="text-sm text-gray-500 mt-1">Paste one or more image URLs, separated by commas</p>
             </div>
 
             {/* Submit Button */}
             <div className="flex justify-end space-x-4 pt-6 border-t">
-              <Link
-                href="/"
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </Link>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors"
-              >
+              <Button asChild variant="outline" type="button">
+                <Link href="/">Cancel</Link>
+              </Button>
+              <Button type="submit" disabled={loading}>
                 {loading ? 'Creating...' : 'Create Listing'}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
