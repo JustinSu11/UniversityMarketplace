@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import { Button } from '@/components/ui/button';
 
 export default function NewListingPage() {
   const router = useRouter();
+  const { data: session, status } = useSession()
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
@@ -34,6 +36,12 @@ export default function NewListingPage() {
     tags: '',
     imageUrls: '', // comma-separated URLs
   });
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/api/auth/signin'); // Or your custom sign-in page
+    }
+  }, [status, router]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -54,6 +62,12 @@ export default function NewListingPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (!session?.user?.id) {
+      setError('You must be logged in to create a listing.');
+      setLoading(false);
+      return;
+    }
 
     // Convert tags string to array
     const tagsArray = formData.tags
@@ -110,6 +124,26 @@ export default function NewListingPage() {
       setLoading(false);
     }
   };
+
+    if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Access Denied</h1>
+          <p className="text-gray-600">Please sign in to create a listing.</p>
+          <p className="text-gray-600 mt-4">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
