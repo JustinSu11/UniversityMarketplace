@@ -1,3 +1,5 @@
+'use client'
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
@@ -7,6 +9,7 @@ import {
   Dialog,
   DialogContent,
   DialogTrigger,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import SignInForm from '@/components/ui/SignInForm';
 import SignUpForm from '@/components/ui/SignUpForm';
@@ -109,6 +112,7 @@ function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignU
                 <DialogTrigger asChild>
                     <button className={styles.navLinkButton}>Sign In</button>
                 </DialogTrigger>
+                <DialogTitle className="sr-only">Sign In</DialogTitle>
                 <DialogContent className='sm:max-w-[425px] p-0'>
                     <SignInForm onSwitchToSignUp={switchToSignUp} />
                 </DialogContent>
@@ -117,10 +121,24 @@ function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignU
                 <DialogTrigger asChild>
                     <button className={styles.navLinkButton}>Sign Up</button>
                 </DialogTrigger>
+                <DialogTitle className="sr-only">Sign Up</DialogTitle>
                 <DialogContent className='sm:max-w-[425px] p-0'>
                     <SignUpForm onSwitchToSignIn={switchToSignIn} />
                 </DialogContent>
             </Dialog>
         </>
     )
+}
+
+// The RootLayout wraps the entire application with the SessionProvider.
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <SessionProvider>
+          <AppLayout>{children}</AppLayout>
+        </SessionProvider>
+      </body>
+    </html>
+  );
 }
