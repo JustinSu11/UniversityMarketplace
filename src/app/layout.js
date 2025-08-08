@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import SignInForm from '@/components/ui/SignInForm';
 import SignUpForm from '@/components/ui/SignUpForm';
-import NewListingForm from '@/components/ui/NewListingForm';
 import { useState } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react'
 import Providers from '@/components/Providers'
@@ -73,7 +72,6 @@ function AppLayout({ children }) {
 //sign in and sign up buttons, once user is authenticated, show their name and a sign out button
 function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignUpOpen, switchToSignIn, switchToSignUp }) {
     const { data: session, status } = useSession();
-    const [isNewListingOpen, setIsNewListingOpen] = useState(false);
 
     if (status === 'loading') {
         return <div className='text-sm font-medium text-gray-500'>Loading...</div>;
@@ -86,16 +84,6 @@ function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignU
         //Display profile picture if available, otherwise show first letter of name in a circle
         return (
             <div className="flex items-center gap-4">
-                {/* New Listing Button & Modal */}
-                <Dialog open={isNewListingOpen} onOpenChange={setIsNewListingOpen}>
-                    <DialogTrigger asChild>
-                        <button className={styles.navLinkButton}>New Listing</button>
-                    </DialogTrigger>
-                    <DialogContent className='sm:max-w-[600px] p-4'>
-                        <NewListingForm onClose={() => setIsNewListingOpen(false)} />
-                    </DialogContent>
-                </Dialog>
-
                 {/* Profile Link */}
                 <Link href='/profile' className={styles.navLinkButton}>{displayName}</Link>
 
@@ -126,17 +114,9 @@ function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignU
     // Show Sign In & Sign Up if not logged in
     return (
         <>
-            <Dialog open={isNewListingOpen} onOpenChange={setIsNewListingOpen}>
-        <DialogTrigger asChild>
-        <button className={styles.navLinkButton}>New Listing</button>
-          </DialogTrigger>
-          <DialogContent className='sm:max-w-[600px] p-4'>
-           <NewListingForm onClose={() => setIsNewListingOpen(false)} />
-           </DialogContent>
-            </Dialog>
             <Dialog open={isSignInOpen} onOpenChange={handleSignInOpen}>
                 <DialogTrigger asChild>
-                    <button className={styles.navLinkButton}>Sign In</button>
+                        <button className={styles.navLinkButton}>Sign In</button>
                 </DialogTrigger>
                 <DialogTitle className="sr-only">Sign In</DialogTitle>
                 <DialogContent className='sm:max-w-[425px] p-0'>
