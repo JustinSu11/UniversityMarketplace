@@ -42,6 +42,19 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum Condition {
+  NEW
+  USED_LIKE_NEW
+  USED_GOOD
+  USED_FAIR
+}
+
+enum ContactPreference {
+  EMAIL
+  PHONE
+  BOTH
+}
+
 model User {
   id            Int       @id @default(autoincrement())
   name          String?
@@ -59,12 +72,15 @@ model User {
 }
 
 model Listing {
-  id          Int     @id @default(autoincrement())
-  title       String
-  description String?
-  priceCents  Int? // store price in cents
-  sellerId    Int
-  seller      User    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  id                Int               @id @default(autoincrement())
+  title             String
+  description       String?
+  priceCents        Int? // store price in cents
+  condition         Condition
+  contactPreference ContactPreference @default(EMAIL)
+  sellerId          Int
+  seller            User              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  photos            Photo[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -78,4 +94,15 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Photo {
+  id        Int     @id @default(autoincrement())
+  url       String
+  listingId Int
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([listingId])
 }
