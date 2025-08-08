@@ -47,4 +47,4 @@ trace
 # Editor directories and files
 .vscode
 .idea
-/src/generated/prisma
+#/src/generated/prisma
