@@ -22,6 +22,7 @@ export default function NewListingPage() {
     condition: 'GOOD',
     location: '',
     tags: '',
+    imageUrls: '', // comma-separated URLs
   });
 
   const handleInputChange = (e) => {
@@ -43,10 +44,17 @@ export default function NewListingPage() {
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0);
 
+    // Convert imageUrls string to array
+    const imagesArray = formData.imageUrls
+      .split(',')
+      .map(url => url.trim())
+      .filter(url => url.length > 0);
+
     const listingData = {
       ...formData,
       priceCents: formData.priceDollars ? priceToCents(parseFloat(formData.priceDollars)) : null,
       tags: tagsArray,
+      images: imagesArray,
       sellerId: 1, // Replace with actual user ID
     };
 
@@ -233,6 +241,23 @@ export default function NewListingPage() {
                 placeholder="textbook, math, calculus (separate with commas)"
               />
               <p className="text-sm text-gray-500 mt-1">Add relevant tags to help buyers find your item</p>
+            </div>
+
+            {/* Images */}
+            <div>
+              <label htmlFor="imageUrls" className="block text-sm font-medium text-gray-700 mb-2">
+                Image URLs
+              </label>
+              <input
+                type="text"
+                id="imageUrls"
+                name="imageUrls"
+                value={formData.imageUrls}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="https://..., https://... (separate with commas)"
+              />
+              <p className="text-sm text-gray-500 mt-1">Paste one or more image URLs, separated by commas</p>
             </div>
 
             {/* Submit Button */}
