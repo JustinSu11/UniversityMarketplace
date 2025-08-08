@@ -42,13 +42,6 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum Condition {
-  NEW
-  USED_LIKE_NEW
-  USED_GOOD
-  USED_FAIR
-}
-
 enum ContactPreference {
   EMAIL
   PHONE
@@ -105,8 +98,8 @@ model Listing {
   condition   ListingCondition @default(GOOD)
   status      ListingStatus   @default(ACTIVE)
   location    String? // campus location or building
-  images      String? // JSON array of image URLs
   tags        String? // JSON array of tags
+  photos      Photo[]
   
   sellerId    Int
   seller      User    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
