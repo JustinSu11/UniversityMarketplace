@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]/route';
 import prisma from '@/lib/prisma';
 
 // GET /api/listings/[id] for a specific listing
@@ -59,6 +61,11 @@ export async function GET(request, { params }) {
 
 // PUT /api/listings/[id] - Update a listing
 export async function PUT(request, { params }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const listingId = parseInt(params.id, 10);
@@ -79,6 +86,13 @@ export async function PUT(request, { params }) {
       return NextResponse.json(
         { error: 'Listing not found' },
         { status: 404 }
+      );
+    }
+
+    // Check if the user is the owner of the listing
+    if (existingListing.sellerId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden' }, { status: 403 }
       );
     }
 
@@ -145,6 +159,11 @@ export async function PUT(request, { params }) {
 
 // DELETE /api/listings/[id] - Delete a listing (soft delete by setting status to DELETED)
 export async function DELETE(request, { params }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const listingId = parseInt(params.id, 10);
 
@@ -164,6 +183,13 @@ export async function DELETE(request, { params }) {
       return NextResponse.json(
         { error: 'Listing not found' },
         { status: 404 }
+      );
+    }
+
+    // Check if the user is the owner of the listing
+    if (existingListing.sellerId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden' }, { status: 403 }
       );
     }
 
