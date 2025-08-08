@@ -12,6 +12,7 @@ import {
 import SignInForm from '@/components/ui/SignInForm';
 import SignUpForm from '@/components/ui/SignUpForm';
 import { useState } from 'react';
+import { SessionProvider, useSession, signOut } from 'next-auth/react'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +24,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function RootLayout({ children }) {
+
+function AppLayout({ children }) {
   const [isSignInOpen, setIsSignInOpen] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
@@ -41,33 +43,78 @@ export default function RootLayout({ children }) {
   };
 
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <header>
-          <nav className={styles.navbar}>
-            <Link href="/" className={styles.websiteTitle}>Campus Exchange</Link>
-            <div className={styles.navLinks}>
-              <Link href="/">Browse</Link>
-              <Dialog open={isSignInOpen} onOpenChange={handleSignInOpen}>
+    <>
+      <header>
+        <nav className={styles.navbar}>
+          <Link href="/" className={styles.websiteTitle}>Campus Exchange</Link>
+          <div className={styles.navLinks}>
+            <Link href="/">Browse</Link>
+            <AuthButtons
+              isSignInOpen={isSignInOpen}
+              isSignUpOpen={isSignUpOpen}
+              handleSignInOpen={handleSignInOpen}
+              handleSignUpOpen={handleSignUpOpen}
+              switchToSignIn={switchToSignIn}
+              switchToSignUp={switchToSignUp}
+            />
+          </div>
+        </nav>
+      </header>
+      <main>{children}</main>
+    </>
+  );
+}
+
+//sign in and sign up buttons, once user is authenticated, show their name and a sign out button
+function AuthButtons({ isSignInOpen, isSignUpOpen, handleSignInOpen, handleSignUpOpen, switchToSignIn, switchToSignUp }) {
+    const { data: session, status } = useSession()
+
+    if (status === 'loading') {
+        return <div className='text-sm font-medium text-gray-500'>Loading...</div>
+    }
+
+    if (session) {
+        // Safely get the user's first name, falling back to the email if the name isn't available.
+        const displayName = session.user.name ? session.user.name.split(' ')[0] : session.user.email;
+
+        return (
+            <div className="flex items-center gap-4">
+                <Link href='/profile' className={styles.navLinkButton}>{displayName}</Link>
+                <button onClick={() => signOut()} className={styles.navLinkButton}>Sign out</button>
+            </div>
+        )
+    }
+
+    return (
+        <>
+            <Dialog open={isSignInOpen} onOpenChange={handleSignInOpen}>
                 <DialogTrigger asChild>
                     <button className={styles.navLinkButton}>Sign In</button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] p-0">
+                <DialogContent className='sm:max-w-[425px] p-0'>
                     <SignInForm onSwitchToSignUp={switchToSignUp} />
                 </DialogContent>
-              </Dialog>
-              <Dialog open={isSignUpOpen} onOpenChange={handleSignUpOpen}>
+            </Dialog>
+            <Dialog open={isSignUpOpen} onOpenChange={handleSignUpOpen}>
                 <DialogTrigger asChild>
                     <button className={styles.navLinkButton}>Sign Up</button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] p-0">
+                <DialogContent className='sm:max-w-[425px] p-0'>
                     <SignUpForm onSwitchToSignIn={switchToSignIn} />
                 </DialogContent>
-              </Dialog>
-            </div>
-          </nav>
-        </header>
-        <main>{children}</main>
+            </Dialog>
+        </>
+    )
+}
+
+// The RootLayout wraps the entire application with the SessionProvider.
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <SessionProvider>
+          <AppLayout>{children}</AppLayout>
+        </SessionProvider>
       </body>
     </html>
   );
