@@ -5,7 +5,9 @@ import SignInForm from '@/components/ui/SignInForm';
 export default function SignInPage() {
   const router = useRouter();
   const search = useSearchParams();
-  const next = search.get('next') || '/user'; // land on /user after login
+  // default to after-login router
+  const next = search.get('next') || '/after-login';
+
   return (
     <div className="p-6 flex justify-center">
       <SignInForm

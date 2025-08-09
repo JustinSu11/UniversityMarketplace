@@ -5,13 +5,11 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-
 export default function Home() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { data: session, status } = useSession();
-
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -25,7 +23,7 @@ export default function Home() {
         } else {
           setError(data.error || 'Failed to fetch listings');
         }
-      } catch (err) {
+      } catch {
         setError('Failed to fetch listings');
       } finally {
         setLoading(false);
@@ -40,7 +38,7 @@ export default function Home() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading listings...</p>
+          <p className="text-gray-600">Loading…</p>
         </div>
       </div>
     );
@@ -63,16 +61,19 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Browse Listings</h1>
         <p className="text-gray-600 mb-8">Found {listings.length} listings</p>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {listings.map((listing) => {
-            const firstImage = Array.isArray(listing.photos) && listing.photos.length > 0 ? listing.photos[0].url : null;
+            const firstImage =
+              Array.isArray(listing.photos) && listing.photos.length > 0
+                ? listing.photos[0].url
+                : null;
             return (
               <div key={listing.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="relative w-full bg-gray-100" style={{ paddingTop: '56.25%' }}>
                   {firstImage ? (
                     <Image
-                      src={firstImage} // This now correctly uses the URL from the Photo model
+                      src={firstImage}
                       alt={listing.title}
                       fill
                       className="object-cover"
@@ -104,8 +105,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      {status === 'authenticated' && (
+      {/* Show New Listing button only for non-admin users */}
+      {status === 'authenticated' && session?.user?.role !== 'ADMIN' && (
         <Link
           href="/newListing"
           className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
